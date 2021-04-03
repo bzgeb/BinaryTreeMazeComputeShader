@@ -157,7 +157,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _computeShader: {fileID: 7200000, guid: a8fbc0ece00d6a64691e806ec2967383, type: 3}
   _renderTexture: {fileID: 0}
-  _size: 32
+  _size: 512
   _wallColor: {r: 0, g: 0, b: 0, a: 0}
   _emptyColor: {r: 1, g: 0, b: 0, a: 1}
   _seed: 182
