@@ -1,0 +1,78 @@
+#pragma kernel Prepass
+#pragma kernel CSMain
+
+RWTexture2D<float4> Result;
+
+uint _Resolution;
+uint _Seed;
+float4 _WallColor;
+float4 _EmptyColor;
+
+//Source: https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+float rand(float2 co)
+{
+    return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+void DrawEastExitTile(uint3 pos)
+{
+    Result[pos.xy] = _EmptyColor;
+    pos.x += 1;
+    Result[pos.xy] = _EmptyColor;
+}
+
+void DrawNorthExitTile(uint3 pos)
+{
+    Result[pos.xy] = _EmptyColor;
+    pos.y += 1;
+    Result[pos.xy] = _EmptyColor;
+}
+
+[numthreads(8,8,1)]
+void Prepass(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == 0 || id.y == 0 || id.x == _Resolution - 1 || id.y == _Resolution - 1)
+    {
+        Result[id.xy] = _WallColor;
+    }
+    else if (id.x % 2 == 0 || id.y % 2 == 0)
+    {
+        Result[id.xy] = _WallColor;
+    }
+}
+
+[numthreads(8,8,1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == 0 || id.y == 0 || id.x == _Resolution - 1 || id.y == _Resolution - 1)
+    {
+        return;
+    }
+
+    if (id.x % 2 == 0 || id.y % 2 == 0)
+    {
+        return;
+    }
+
+    const uint offset = _Resolution % 2 == 0 ? 3 : 2;
+    if (id.x == _Resolution - offset && id.y < _Resolution - offset)
+    {
+        DrawNorthExitTile(id);
+    }
+    else if (id.y == _Resolution - offset && id.x < _Resolution - offset)
+    {
+        DrawEastExitTile(id);
+    }
+    else
+    {
+        float noise = rand(float2(id.x + _Seed, id.y + _Seed));
+        if (noise > 0.5)
+        {
+            DrawNorthExitTile(id);
+        }
+        else
+        {
+            DrawEastExitTile(id);
+        }
+    }
+}
